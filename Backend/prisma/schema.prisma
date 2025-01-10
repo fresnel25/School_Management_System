@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id        Int      @id @default(autoincrement())
+  matricule String   @unique
+  name      String
+  surname   String
+  email     String   @unique
+  password  String
+  roleId    Int
+  role      role     @relation(references: [id], fields: [roleId])
+  createAt  DateTime @default(now())
+  updateAt  DateTime @updatedAt
+}
+
+model role {
+  id              Int               @id @default(autoincrement())
+  name            String            @unique
+  description     String
+  createAt        DateTime          @default(now())
+  updateAt        DateTime          @updatedAt
+  user            user[]
+  Role_Permission role_permission[]
+}
+
+model permission {
+  id              Int               @id @default(autoincrement())
+  name            String            @unique
+  description     String
+  createAt        DateTime          @default(now())
+  updateAt        DateTime          @updatedAt
+  Role_Permission role_permission[]
+}
+
+model role_permission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  role         role       @relation(references: [id], fields: [roleId])
+  permissionId Int
+  permission   permission @relation(references: [id], fields: [permissionId])
+  status       Boolean    @default(true)
+  createAt     DateTime   @default(now())
+  updateAt     DateTime   @updatedAt
+
+  @@unique([roleId, permissionId])
+}
