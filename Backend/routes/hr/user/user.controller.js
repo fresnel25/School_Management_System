@@ -5,12 +5,26 @@ const saltround = 10;
 
 const RegisterUser = async (req, res) => {
   try {
-    if (!req.body.password || !req.body.email || !req.body.name) {
-      return res.status(400).json({ error: "Missing required fields" });
+    const requiredField = ["matricule", "name", "surname", "email", "password"];
+    for (const field of requiredField) {
+      if (!req.body[field]) {
+        return res.status(400).json({ message: `${field} is required` });
+      }
     }
 
-    const passwordHash = await bcrypt.hash(req.body.password, saltround);
+    // check if user already exist
+    const CheckUserExist = await prisma.user.findUnique({
+      where: {
+        email: req.body.email,
+        matricule: req.body.matricule
+      }
+    });
+    if (CheckUserExist) {
+      return res.status(409).json({ message: "this user already exist" });
+    }
 
+    // hash password and create user function
+    const passwordHash = await bcrypt.hash(req.body.password, saltround);
     const createUser = await prisma.user.create({
       data: {
         matricule: req.body.matricule,
@@ -23,13 +37,39 @@ const RegisterUser = async (req, res) => {
     });
 
     const { password, ...userWithoutPassword } = createUser;
-    return res.status(201).json(userWithoutPassword);
+    return res
+      .status(201)
+      .json({
+        message: "user created successfully",
+        data: userWithoutPassword
+      });
   } catch (error) {
     console.error("Error in RegisterUser:", error.message, error.stack);
     return res.status(500).json({ error: error.message });
   }
 };
 
+const GetSingleUser = async (req, res) => {
+  try {
+    const SingleUser = await prisma.user.findUnique({
+      where: { id: Number(req.params.id) }
+    });
+    if (!SingleUser) {
+      return res.status(400).json({
+        message: "this user does not exist"
+      });
+    } else {
+      const { password, ...userWithoutPassword } = SingleUser;
+      return res
+        .status(200)
+        .json({ message: "user found", data: userWithoutPassword });
+    }
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
-  RegisterUser
+  RegisterUser,
+  GetSingleUser
 };
