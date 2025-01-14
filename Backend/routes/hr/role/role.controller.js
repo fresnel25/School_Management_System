@@ -2,11 +2,11 @@ const prisma = require("../../../DB/db.config");
 
 const CreateRole = async (req, res) => {
   try {
-    // verifier si le role existe deja
-    const findRole = await prisma.role.findUnique({
+    // Check if role already exists
+    const roleName = await prisma.role.findUnique({
       where: { name: req.body.name }
     });
-    if (findRole) {
+    if (roleName) {
       return res.status(409).json({ message: "Role already exist" });
     }
 
@@ -28,16 +28,15 @@ const CreateRole = async (req, res) => {
 
 const GetSingleRole = async (req, res) => {
   try {
+
     //
-    const CheckRoleExist = await prisma.role.findUnique({
+    const roleById = await prisma.role.findUnique({
       where: { id: Number(req.params.id) }
     });
-    if (!CheckRoleExist) {
+    if (!roleById) {
       return res.status(404).json({ message: "this role not exist found" });
     } else {
-      return res
-        .status(200)
-        .json({ message: "role found", data: CheckRoleExist });
+      return res.status(200).json({ message: "role found", data: roleById });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -62,15 +61,15 @@ const GetAllRoles = async (req, res) => {
 const DeleteRole = async (req, res) => {
   try {
     // check if role exist
-    const checkRoleExist = await prisma.role.findUnique({
+    const roleById = await prisma.role.findUnique({
       where: { id: Number(req.params.id) }
     });
-
-    if (!checkRoleExist) {
+    if (!roleById) {
       return res
         .status(404)
         .json({ message: "this role you want to delete not exist found" });
     }
+
     // delete role
     else {
       await prisma.role.delete({
@@ -83,9 +82,47 @@ const DeleteRole = async (req, res) => {
   }
 };
 
+const UpdateRole = async (req, res) => {
+    try {
+        // check if role exist
+        const roleById = await prisma.role.findUnique({
+            where: { id: Number(req.params.id) }
+        });
+        if(!roleById){
+            return res.status(404).json({message: "this role you want to update not exist found"});
+        }
+
+        // check if role name exist
+        const roleByName = await prisma.role.findFirst({
+            where: {
+                name: req.body.name
+            }
+        });
+        if(roleByName){
+            return res.status(409).json({ message: "thuis role name already exist" });
+        }
+
+        // update role
+        const updatedRole = await prisma.role.update({
+            where: {
+                id: Number(req.params.id)
+            },
+            data: {
+                name: roleByName.name,
+                description: req.body.description
+            }
+        })
+        return res.status(201).json({ message: "role updated successfully", data: updatedRole });
+    }
+    catch (error) {
+        return res.status(500).json({message: error.message});
+    }
+}
+
 module.exports = {
   CreateRole,
   GetSingleRole,
   GetAllRoles,
-  DeleteRole
+  DeleteRole,
+  UpdateRole,
 };

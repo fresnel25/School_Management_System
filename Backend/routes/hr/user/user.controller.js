@@ -13,10 +13,9 @@ const RegisterUser = async (req, res) => {
     }
 
     // check if user already exist
-    const checkUserExist = await prisma.user.findUnique({
+    const checkUserExist = await prisma.user.findFirst({
       where: {
-        email: req.body.email,
-        matricule: req.body.matricule
+        OR: [{ email: req.body.email }, { matricule: req.body.matricule }]
       }
     });
     if (checkUserExist) {
@@ -36,6 +35,7 @@ const RegisterUser = async (req, res) => {
       }
     });
 
+    // return user without password
     const { password, ...userWithoutPassword } = createUser;
     return res.status(201).json({
       message: "user created successfully",
@@ -78,12 +78,15 @@ const GetAllUsers = async (req, res) => {
       }
     });
     if (!allUsers) {
-      return res.status(404).json({ message: "no user found" });
+      return res.status(404).json({ message: "no users found" });
     } else {
-      const { password, ...AllUserWithoutPassword } = allUsers;
+      // Supprimer le mot de passe pour chaque utilisateur
+      const usersWithoutPasswords = allUsers.map(
+        ({ password, ...userWithoutPassword }) => userWithoutPassword
+      );
       return res
         .status(200)
-        .json({ message: "All user found", data: AllUserWithoutPassword });
+        .json({ message: "All user found", data: usersWithoutPasswords });
     }
   } catch (error) {}
 };
@@ -91,18 +94,18 @@ const GetAllUsers = async (req, res) => {
 const DeleteUser = async (req, res) => {
   try {
     // check if user exist in data base
-    const checkUserExist = await prisma.user.findUnique({
+    const userById = await prisma.user.findUnique({
       where: {
         id: Number(req.params.id)
       }
     });
 
-    if (!checkUserExist) {
+    if (!userById) {
       return res.status(404).json({
         message: "this user you want to delete not found"
       });
     } else {
-        await prisma.user.delete({
+      await prisma.user.delete({
         where: {
           id: Number(req.params.id)
         }
@@ -117,10 +120,49 @@ const DeleteUser = async (req, res) => {
 const UpdateUser = async (req, res) => {
   try {
     // check if user exist in data base
-    const checkUserExist = await prisma.user.findUnique({
+    const userById = await prisma.user.findUnique({
       where: {
         id: Number(req.params.id)
       }
+    });
+    if (!userById) {
+      return res
+        .status(404)
+        .json({ message: "this user you want to update not found" });
+    }
+
+    // check if user already exist
+    const userByEmailOrMatricule = await prisma.user.findFirst({
+      where: {
+        OR: [{ email: req.body.email }, { matricule: req.body.matricule }]
+      }
+    });
+    if (userByEmailOrMatricule) {
+      return res.status(409).json({ message: "this user already exist" });
+    }
+
+    // hash password and create user function
+    const passwordHash = await bcrypt.hash(req.body.password, saltround);
+
+    // update user
+    const updateUser = await prisma.user.update({
+      where: {
+        id: Number(req.params.id)
+      },
+      data: {
+        name: req.body.name,
+        surname: req.body.surname,
+        email: req.body.email,
+        password: passwordHash,
+        roleId: req.body.roleId
+      }
+    });
+
+    // return user without password
+    const { password, ...userUpdateWithoutPassword } = updateUser;
+    return res.status(201).json({
+      message: "this user has been updated successfully",
+      data: userUpdateWithoutPassword
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -131,5 +173,6 @@ module.exports = {
   RegisterUser,
   GetSingleUser,
   GetAllUsers,
-  DeleteUser
+  DeleteUser,
+  UpdateUser
 };
