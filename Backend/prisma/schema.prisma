@@ -40,12 +40,13 @@ model student {
   updateAt  DateTime @updatedAt
 
   parentId    Int
-  parent      parent    @relation(fields: [parentId], references: [id])
+  parent      parent       @relation(fields: [parentId], references: [id])
   classroomId Int
-  classroom   classroom @relation(fields: [classroomId], references: [id])
+  classroom   classroom    @relation(fields: [classroomId], references: [id])
   gradeId     Int
-  grade       grade     @relation(fields: [gradeId], references: [id])
+  grade       grade        @relation(fields: [gradeId], references: [id])
   attendances attendance[]
+  resuls result[]
 }
 
 model parent {
@@ -92,16 +93,17 @@ model teacher {
 model classroom {
   id       Int      @id @default(autoincrement())
   name     String   @unique
+  capacity Int
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
 
-  teacherId Int
-  teacher   teacher   @relation(fields: [teacherId], references: [id])
-  gradeId   Int
-  grade     grade     @relation(fields: [gradeId], references: [id])
-  students  student[]
-  lessons   lesson[]
-  events event[]
+  supervisorId     Int
+  supervisor       teacher        @relation(fields: [supervisorId], references: [id])
+  gradeId       Int
+  grade         grade          @relation(fields: [gradeId], references: [id])
+  students      student[]
+  lessons       lesson[]
+  events        event[]
   announcements announcement[]
 }
 
@@ -167,10 +169,12 @@ model result {
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
 
-  assignmentId Int
-  assignment   assignment @relation(fields: [assignmentId], references: [id])
-  examId       Int
-  exam         exam       @relation(fields: [examId], references: [id])
+  assignmentId Int?
+  assignment   assignment? @relation(fields: [assignmentId], references: [id])
+  examId       Int?
+  exam         exam?       @relation(fields: [examId], references: [id])
+  studentId    Int
+  student   student @relation(fields: [studentId], references: [id])
 }
 
 model attendance {
@@ -181,30 +185,30 @@ model attendance {
   updateAt DateTime @updatedAt
 
   studentId Int
-  student   student   @relation(fields: [studentId], references: [id])
-  lessonId Int
-  lesson   lesson   @relation(fields: [lessonId], references: [id])
+  student   student @relation(fields: [studentId], references: [id])
+  lessonId  Int
+  lesson    lesson  @relation(fields: [lessonId], references: [id])
 }
 
 model event {
-  id       Int      @id @default(autoincrement())
-  title String
+  id          Int      @id @default(autoincrement())
+  title       String
   description String
-  startTime DateTime
-  endTime   DateTime
+  startTime   DateTime
+  endTime     DateTime
 
   classroomId Int
-  classroom   classroom   @relation(fields: [classroomId], references: [id])
+  classroom   classroom @relation(fields: [classroomId], references: [id])
 }
 
 model announcement {
-  id       Int      @id @default(autoincrement())
-  title String
+  id          Int      @id @default(autoincrement())
+  title       String
   description String
-  date DateTime
+  date        DateTime
 
   classroomId Int
-  classroom   classroom   @relation(fields: [classroomId], references: [id])
+  classroom   classroom @relation(fields: [classroomId], references: [id])
 }
 
 model role {
