@@ -55,15 +55,15 @@ const GetSingleUser = async (req, res) => {
         role: true
       }
     });
-    if (!singleUser) {
-      return res.status(404).json({
-        message: "this user not found"
-      });
-    } else {
+    if (singleUser) {
       const { password, ...userWithoutPassword } = singleUser;
       return res
         .status(200)
         .json({ message: "user found", data: userWithoutPassword });
+    } else {
+      return res.status(404).json({
+        message: "this user not found"
+      });
     }
   } catch (error) {
     return res.status(500).json({ error: error.message });
