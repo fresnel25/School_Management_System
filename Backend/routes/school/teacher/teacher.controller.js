@@ -10,7 +10,6 @@ const CreateTeacher = async (req, res) => {
       "email",
       "phone",
       "address",
-      "img",
       "sex"
     ];
     for (const field of requireField) {
@@ -35,7 +34,8 @@ const CreateTeacher = async (req, res) => {
           email: req.body["email"],
           phone: req.body["phone"],
           address: req.body["address"],
-          surname: req.body["surname"]
+          surname: req.body["surname"],
+          sex: req.body["sex"],
         }
       });
       res

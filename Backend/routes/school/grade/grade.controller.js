@@ -60,8 +60,61 @@ const GetAllGrade = async (req, res) => {
   }
 };
 
+const UpdateGrade = async (req, res) => {
+  try {
+    const gradeId = Number(req.params.id);
+    const gradeById = await prisma.grade.findUnique({ where: { id: gradeId } });
+    if (gradeById) {
+      const gradeByLevel = await prisma.grade.findUnique({
+        where: { level: req.body.level }
+      });
+      if (gradeByLevel) {
+        return res.status(409).json({ message: "this grade already exists" });
+      } else {
+        const updatedGrade = await prisma.grade.update({
+          where: {
+            id: gradeId
+          },
+          data: {
+            level: req.body.level
+          }
+        });
+        return res
+          .status(200)
+          .json({ message: "grade updated", data: updatedGrade });
+      }
+    } else {
+      return res.status(404).json({ message: "this grade does not exist" });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const DeleteGrade = async (req, res) => {
+  try {
+    const gradeId = Number(req.params.id);
+    const gradeById = await prisma.grade.findUnique({ where: { id: gradeId } });
+    if (gradeById) {
+        await prisma.grade.delete({
+            where: {
+                id: gradeId
+            }
+        })
+        return res.status(200).json({ message: "this grade has been deleted" });
+    }
+    else {
+        return res.status(404).json({message: "this grade does not exist" });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
-    CreateGrade,
-    GetSingleGrade,
-    GetAllGrade
-}
+  CreateGrade,
+  GetSingleGrade,
+  GetAllGrade,
+  UpdateGrade,
+  DeleteGrade
+};
