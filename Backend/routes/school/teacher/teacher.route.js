@@ -4,7 +4,7 @@ const { CreateTeacher, GetSingleTeacher, GetAllTeachers, UpdateTeacher, DeleteTe
 const teacherRoutes = express.Router()
 
 teacherRoutes.post("/create_teacher", CreateTeacher)
-teacherRoutes.get("/sigle_teacher/:id", GetSingleTeacher)
+teacherRoutes.get("/single_teacher/:id", GetSingleTeacher)
 teacherRoutes.get("/all_teachers", GetAllTeachers)
 teacherRoutes.put("/update_teacher/:id", UpdateTeacher)
 teacherRoutes.delete("/delete_teacher/:id", DeleteTeacher)

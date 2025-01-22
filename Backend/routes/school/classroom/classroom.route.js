@@ -4,7 +4,7 @@ const { CreateClassroom, GetAllClassroom, GetSingleClassroom, UpdateClassroom, D
 const classroomRoutes = express.Router()
 
 classroomRoutes.post("/create_classroom", CreateClassroom);
-classroomRoutes.get("/all_classroom", GetAllClassroom);
+classroomRoutes.get("/all_classrooms", GetAllClassroom);
 classroomRoutes.get("/single_classroom/:id", GetSingleClassroom);
 classroomRoutes.put("/update_classroom/:id", UpdateClassroom);
 classroomRoutes.delete("delete_classroom/:id", DeleteClassroom);
